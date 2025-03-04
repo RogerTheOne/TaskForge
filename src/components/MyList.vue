@@ -14,7 +14,6 @@ export default {
 </script>
 
 <style scoped>
-/*main*/
 .todo-main {
   margin-left: 0px;
   border: 1px solid #ddd;
