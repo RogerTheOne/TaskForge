@@ -2,25 +2,52 @@
   <li>
     <label>
       <input type="checkbox" :checked="todo.completed" @change="handleCheck(todo.id)"/>
-      <span>{{todo.title}}</span>
+      <span v-show="!todo.isEdit">{{todo.title}}</span>
+      <input v-show="todo.isEdit" type="text" :value="todo.title" @blur="handleBlur(todo, $event)" ref="inputTitle">
+
     </label>
+     
     <button class="btn btn-danger" @click="handleDelete(todo.id)">Delete</button>
+    <button v-show="!todo.isEdit" class="btn btn-edit" @click="handleEdit(todo)">Edit</button>
   </li>
 </template>
   
 <script>
+import pubsub from 'pubsub-js';
 export default {
   name: 'MyItem',
-  props:['todo','remove','deleteTodo'],
+  props:['todo'],
   methods:{
     handleCheck(id){
-      this.remove(id)
+      //this.remove(id)
+      this.$bus.$emit('checkAlltodo', id)
     },
     handleDelete(id){
       alert(confirm("Do you really want to delete it?"))
-      this.deleteTodo(id)
+      //this.deleteTodo(id)
+      //this.$bus.$emit('deleteTodo', id)
+      pubsub.publish('deleteTodo', id); 
+    },
+    handleEdit(){
+      if (todo.hasOwnProperty('isEdit')){
+        todo.isEdit = true
+      }else{
+        this.$set(todo, 'isEdit', true)
+      }
+      this.$nextTick(function(){
+        this.$refs.inputTitle.focus()
+      })
+      
+    },
+    handleBlur(todo, e){
+      todo.isEdit = false
+      if (!e.target.value.trim()) return alert('you cannot leave this as blank')
+      this.$bus.$emit('updateTodo', todo.id, e.target.value)
+      
+
     }
-  }
+
+  },
 };
 </script>
 

@@ -12,7 +12,8 @@ export default {
   methods:{
       add(e){
           if (!e.target.value) return alert("You can't leave it as blank")
-          const todo = {id:nanoid, title:e.target.value, completed: false}
+          const todo = {id: nanoid(), title: e.target.value, completed: false}
+
           this.receive(todo)
           e.target.value = ''
       }

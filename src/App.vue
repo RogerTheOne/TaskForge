@@ -3,7 +3,7 @@
     <div class="todo-container">
       <div class="todo-wrap">
         <MyHeader :receive="receive"/>
-        <MyList :todos="todos" :remove="remove" :deleteTodo="deleteTodo"/>
+        <MyList :todos="todos" />
         <MyFooter :todos="todos" :checkAlltodo="checkAlltodo"/>
       </div>
     </div>
@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import pubsub from 'pubsub-js';
 import MyHeader from "./components/MyHeader.vue";
 import MyFooter from "./components/MyFooter.vue";
 import MyList from "./components/MyList.vue";
@@ -20,11 +21,7 @@ export default {
   components: { MyHeader, MyFooter, MyList },
   data(){
     return{
-       todos:[
-         {id:'001',title:'Go Bathing', completed:'true' },
-         {id:'002',title:'Go Sleeping', completed:'true' },
-         {id:'003',title:'Go Shopping', completed:'true' },
-       ]
+       todos:JSON.parse(localStorage.getItem('todos')) || []
     }
   },
   methods:{
@@ -36,10 +33,15 @@ export default {
         if (todo.id === id) todo.completed = !todo.completed
       })
     },
-    deleteTodo(id){
+    updateTodo(id, title){
+      this.todos.forEach((todo)=>{
+        if (todo.id === id) todo.title = title
+      })
+    },
+    deleteTodo(_,id){
       this.todos = this.todos.filter((todo)=>{
         return todo.id !== id
-      })
+      }) 
     },
     checkAlltodo(completed){
       this.todos.forEach((todo)=>{
@@ -47,6 +49,25 @@ export default {
       })
     
     }
+  },
+  watch:{
+    todos:{
+      deep:true,
+      handler(value){
+        localStorage.setItem('todos', JSON.stringify(value))
+      }
+    }
+  },
+  mounted(){
+    this.$bus.$on('checkAlltodo', this.remove)
+    //this.$bus.$on('deleteTodo', this.deleteTodo)
+    this.$bus.$on('updateTodo', this.updateTodo)
+    this.pubsId = pubsub.subscribe('deletTodo', this.deleteTodo);
+  },
+  beforeDestroy(){
+    this.$bus.$off('checkAlltodo')
+    this.$bus.$off('updateTodo')
+    pubsub.unsubscribe(this.pubsId);
   }
 };
 </script>
@@ -73,6 +94,12 @@ body {
   color: #fff;
   background-color: #da4f49;
   border: 1px solid #bd362f;
+  margin-right: 5px;
+}
+.btn-edit {
+  color: #fff;
+  background-color: skyblue;
+  border: 1px solid #4591b4;
 }
 .btn-danger:hover {
   color: #fff;
